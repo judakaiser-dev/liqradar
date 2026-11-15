@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050810" />
+    <script>
+      // Theme vor dem ersten Paint anwenden (verhindert Aufblitzen)
+      try {
+        var t = localStorage.getItem('liqradar-theme')
+        if (t === 'light') {
+          document.documentElement.dataset.theme = 'light'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f2f4f9')
+        }
+      } catch (e) {}
+    </script>
+    <meta
+      name="description"
+      content="LIQRADAR — Echtzeit-Dashboard für Krypto-Liquidationen: Heatmap, Gesamtliquidationen, Börsen-Ranking und Live-Feed."
+    />
+    <!-- App-Modus (PWA / iOS Home-Bildschirm) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LIQRADAR" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <!-- iOS-Startbilder -->
+    <link rel="apple-touch-startup-image" href="./icons/splash-1320x2868.png" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1290x2796.png" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1179x2556.png" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1170x2532.png" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1284x2778.png" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1125x2436.png" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-828x1792.png" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-750x1334.png" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <!-- iPad-Startbilder (hochkant + quer) -->
+    <link rel="apple-touch-startup-image" href="./icons/splash-1536x2048.png" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2048x1536.png" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1668x2224.png" media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2224x1668.png" media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1668x2388.png" media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2388x1668.png" media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1668x2420.png" media="screen and (device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2420x1668.png" media="screen and (device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2048x2732.png" media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2732x2048.png" media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2064x2752.png" media="screen and (device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2752x2064.png" media="screen and (device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-1488x2266.png" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="./icons/splash-2266x1488.png" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
+    <!-- Schriften lokal gebündelt — kein externer Request, kein Blockieren, offline verfügbar -->
+    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <title>LIQRADAR — Krypto Liquidations-Dashboard</title>
+    <script type="module" crossorigin src="./assets/index-CHnjMAzE.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-yWsBINc8.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Start-Wächter: bleibt die App leer ODER ungestylt (z. B. fehlende/veraltete
+      // Datei nach einem Update), einmal automatisch neu laden — danach Reparatur anbieten.
+      (function () {
+        function broken() {
+          var root = document.getElementById('root')
+          if (!root || root.childElementCount === 0) return true
+          try {
+            var bg = getComputedStyle(document.body).backgroundColor
+            if (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') return true // Stylesheet fehlt
+          } catch (e) {}
+          return false
+        }
+        function recover() {
+          if (!broken()) return
+          var tried = false
+          try { tried = sessionStorage.getItem('liqradar-bootretry') === '1' } catch (e) {}
+          if (!tried) {
+            try { sessionStorage.setItem('liqradar-bootretry', '1') } catch (e) {}
+            var u = new URL(location.href)
+            u.searchParams.set('neu', Date.now().toString(36))
+            location.replace(u.toString())
+            return
+          }
+          var d = document.createElement('div')
+          d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:#050810;color:#ebebeb;font-family:system-ui,sans-serif;padding:24px;text-align:center'
+          d.innerHTML =
+            '<div><div style="font-size:18px;font-weight:700;margin-bottom:8px">LIQRADAR konnte nicht geladen werden</div>' +
+            '<div style="font-size:13px;opacity:.7;margin-bottom:16px">Meist hilft ein einmaliges Leeren des App-Caches.</div>' +
+            '<button id="liqradar-recover" style="background:#22d3ee;color:#050810;border:0;border-radius:8px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer">Cache leeren &amp; neu laden</button></div>'
+          document.body.appendChild(d)
+          document.getElementById('liqradar-recover').onclick = async function () {
+            try {
+              if ('serviceWorker' in navigator) {
+                var regs = await navigator.serviceWorker.getRegistrations()
+                for (var i = 0; i < regs.length; i++) await regs[i].unregister()
+              }
+              if (window.caches) {
+                var keys = await caches.keys()
+                for (var j = 0; j < keys.length; j++) await caches.delete(keys[j])
+              }
+              try { sessionStorage.removeItem('liqradar-bootretry') } catch (e) {}
+            } catch (e) {}
+            var u2 = new URL(location.href)
+            u2.searchParams.set('neu', Date.now().toString(36))
+            location.replace(u2.toString())
+          }
+        }
+        window.addEventListener('DOMContentLoaded', function () { setTimeout(recover, 8000) })
+        // Merker zurücksetzen, sobald die App erfolgreich UND gestylt gerendert hat
+        var obs = new MutationObserver(function () {
+          if (!broken()) {
+            try { sessionStorage.removeItem('liqradar-bootretry') } catch (e) {}
+            obs.disconnect()
+          }
+        })
+        if (document.body) obs.observe(document.body, { childList: true, subtree: true })
+      })()
+    </script>
+  </body>
+</html>
