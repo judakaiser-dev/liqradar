@@ -51,6 +51,13 @@
     <link rel="apple-touch-startup-image" href="./icons/splash-1488x2266.png" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
     <link rel="apple-touch-startup-image" href="./icons/splash-2266x1488.png" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />
     <!-- Schriften lokal gebündelt — kein externer Request, kein Blockieren, offline verfügbar -->
+    <style id="lr-safe-area">
+      /* iPhone/iPad: Kopfleisten unter Statusleiste/Notch/Dynamic Island freistellen */
+      header.sticky.top-0 { padding-top: env(safe-area-inset-top); }
+      header.sticky.top-0, nav[aria-label="Hauptnavigation"] {
+        padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+      }
+    </style>
     <link rel="stylesheet" href="./fonts/fonts.css" />
     <title>LIQRADAR — Krypto Liquidations-Dashboard</title>
     <script src="./assets/notify-LR19.js"></script>
