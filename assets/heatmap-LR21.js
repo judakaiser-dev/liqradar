@@ -854,6 +854,15 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start)
   else start()
 
-  // für Tests
-  window.__lrHeatmap = { state: state, buildLevels: buildLevels, TFS: TFS }
+  function ensureStyle() {
+    if (!document.getElementById('lrh-style')) {
+      var st = el('style'); st.id = 'lrh-style'; st.textContent = CSS; document.head.appendChild(st)
+    }
+  }
+  // auch vom Reiter „Heute" genutzt
+  window.__lrHeatmap = {
+    state: state, buildLevels: buildLevels, activeLevels: activeLevels, fetchCandles: fetchCandles,
+    TFS: TFS, EXCHANGES: EXCHANGES, IV_MS: IV_MS, COINS: COINS, ensureStyle: ensureStyle,
+    fmtUsd: fmtUsd, fmtPrice: fmtPrice, fetchJson: fetchJson,
+  }
 })()
