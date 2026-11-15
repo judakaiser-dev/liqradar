@@ -3,7 +3,7 @@
    every path returns a real Response or the handler is not called at all.
    Alle Pfade sind relativ zum SW-Scope, damit die App auch in einem
    Unterverzeichnis (z. B. https://host/app/) zuverlässig funktioniert. */
-const CACHE = 'liqradar-v18'
+const CACHE = 'liqradar-v19'
 const ROOT = new URL('./', self.registration.scope).pathname
 
 const OFFLINE_HTML =
@@ -83,4 +83,18 @@ self.addEventListener('fetch', (event) => {
       })(),
     )
   }
+})
+
+// Tippen auf eine Mitteilung: App in den Vordergrund holen bzw. öffnen
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const c of all) {
+        if ('focus' in c) return c.focus()
+      }
+      return self.clients.openWindow(ROOT)
+    })(),
+  )
 })
