@@ -15,9 +15,9 @@
     { key: 'hyperliquid', label: 'Hyperliquid', color: '#34d399' },
   ]
   var H = 3600e3, D = 24 * H
-  var IV_MS = { '5m': 5 * 60e3, '15m': 15 * 60e3, '30m': 30 * 60e3, '2h': 2 * H, '12h': 12 * H, '1d': D }
-  var IV_LABEL = { '5m': '5-Minuten-Kerzen', '15m': '15-Minuten-Kerzen', '30m': '30-Minuten-Kerzen', '2h': '2-Stunden-Kerzen', '12h': '12-Stunden-Kerzen', '1d': 'Tageskerzen' }
-  var BYBIT_IV = { '5m': '5', '15m': '15', '30m': '30', '2h': '120', '12h': '720', '1d': 'D' }
+  var IV_MS = { '5m': 5 * 60e3, '15m': 15 * 60e3, '30m': 30 * 60e3, '1h': H, '2h': 2 * H, '12h': 12 * H, '1d': D }
+  var IV_LABEL = { '5m': '5-Minuten-Kerzen', '15m': '15-Minuten-Kerzen', '30m': '30-Minuten-Kerzen', '1h': 'Stunden-Kerzen', '2h': '2-Stunden-Kerzen', '12h': '12-Stunden-Kerzen', '1d': 'Tageskerzen' }
+  var BYBIT_IV = { '5m': '5', '15m': '15', '30m': '30', '1h': '60', '2h': '120', '12h': '720', '1d': 'D' }
   var TFS = [
     { key: '12h', label: '12H', long: '12 Stunden', ms: 12 * H, iv: '5m', range: 0.06 },
     { key: '24h', label: '24H', long: '24 Stunden', ms: D, iv: '5m', range: 0.08 },
@@ -28,6 +28,14 @@
     { key: '180d', label: '180D', long: '180 Tage', ms: 180 * D, iv: '1d', range: 0.45 },
     { key: '1y', label: '1J', long: '1 Jahr', ms: 365 * D, iv: '1d', range: 0.5 },
   ]
+  var TF_EXTRA = [{ key: '14d', label: '14D', long: '14 Tage', ms: 14 * D, iv: '1h', range: 0.2 }]
+  var MAP_TFS = [
+    { key: '1d', label: '1 Tag', tf: '24h' },
+    { key: '1w', label: '1 Woche', tf: '7d' },
+    { key: '2w', label: '2 Wochen', tf: '14d' },
+    { key: '1m', label: '1 Monat', tf: '30d' },
+  ]
+  function tfByKey(k) { return TFS.concat(TF_EXTRA).filter(function (t) { return t.key === k })[0] }
   // typische Hebel-Verteilung neuer Positionen
   var TIERS = [
     { lev: 10, w: 0.3 },
@@ -44,6 +52,9 @@
     coin: 'BTC',
     ex: 'binance',
     tf: '24h',
+    mapTf: '1w',
+    mapData: {},
+    mapLoading: false,
     data: {}, // ex -> {candles, levels, err}
     loading: false,
     updated: null,
@@ -55,12 +66,14 @@
     if (COINS.indexOf(saved.coin) >= 0) state.coin = saved.coin
     if (saved.ex === 'all' || EXCHANGES.some(function (e) { return e.key === saved.ex })) state.ex = saved.ex
     if (TFS.some(function (t) { return t.key === saved.tf })) state.tf = saved.tf
+    if (MAP_TFS.some(function (t) { return t.key === saved.mapTf })) state.mapTf = saved.mapTf
   } catch (e) {}
 
   function save() {
-    try { localStorage.setItem('liqradar-heatmap', JSON.stringify({ coin: state.coin, ex: state.ex, tf: state.tf })) } catch (e) {}
+    try { localStorage.setItem('liqradar-heatmap', JSON.stringify({ coin: state.coin, ex: state.ex, tf: state.tf, mapTf: state.mapTf })) } catch (e) {}
   }
   function tfObj() { return TFS.filter(function (t) { return t.key === state.tf })[0] }
+  function mapTfObj() { return tfByKey(MAP_TFS.filter(function (t) { return t.key === state.mapTf })[0].tf) }
 
   /* ---------- Formatierung ---------- */
   var nf0 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 })
@@ -453,15 +466,16 @@
   var mapModel = null
   function computeMap() {
     mapModel = null
-    var tf = tfObj()
-    var ref = refCandles(['binance', 'bybit', 'hyperliquid'])
+    var tf = mapTfObj()
+    var ref = null
+    ;['binance', 'bybit', 'hyperliquid'].forEach(function (k) { var d = state.mapData[k]; if (!ref && d && d.candles && d.candles.length) ref = d.candles })
     if (!ref) return
     var P = ref[ref.length - 1].c
     var lo = P * (1 - tf.range), hi = P * (1 + tf.range)
     var bins = 90
     var per = {}, any = false
     EXCHANGES.forEach(function (e) {
-      var d = state.data[e.key]
+      var d = state.mapData[e.key]
       if (!d || !d.levels) return
       any = true
       var arr = new Float64Array(bins)
@@ -496,7 +510,7 @@
     var M = mapModel
     if (!M) {
       ctx.fillStyle = muted; ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'center'
-      ctx.fillText(state.loading ? 'Lade Kursdaten …' : 'Keine Daten.', w / 2, h / 2)
+      ctx.fillText(state.mapLoading ? 'Lade Kursdaten …' : 'Keine Daten.', w / 2, h / 2)
       return
     }
     var axL = w < 520 ? 46 : 58, axR = w < 520 ? 46 : 58, top = 24, bottom = 22
@@ -685,7 +699,7 @@
     sel.setAttribute('aria-label', 'Coin auswählen')
     COINS.forEach(function (c) { var o = el('option', null, c); o.value = c; sel.appendChild(o) })
     sel.value = state.coin
-    sel.addEventListener('change', function () { state.coin = sel.value; save(); load(true) })
+    sel.addEventListener('change', function () { state.coin = sel.value; save(); load(true); loadMap(true) })
     hin.appendChild(sel)
     var upd = el('span', 'lrh-upd', '')
     hin.appendChild(upd)
@@ -718,6 +732,8 @@
     h2.appendChild(el('div', 'lrh-title', 'Börsen-Liquidationskarte'))
     var sub2 = el('div', 'lrh-sub', '')
     h2.appendChild(sub2)
+    var ctr2 = el('div', 'lrh-ctrls')
+    h2.appendChild(ctr2)
     c2.appendChild(h2)
     var legend = el('div', 'lrh-legend')
     c2.appendChild(legend)
@@ -731,7 +747,7 @@
       'Antippen bzw. Ziehen über die Karten zeigt Details.'))
     main.appendChild(c2)
 
-    var ui = { root: root, upd: upd, sub1: sub1, ctr1: ctr1, heatWrap: hw, heatCanvas: hc, moves: movesHead, sub2: sub2, legend: legend, ratio: ratio, mapWrap: mw, mapCanvas: mc }
+    var ui = { root: root, upd: upd, sub1: sub1, ctr1: ctr1, ctr2: ctr2, heatWrap: hw, heatCanvas: hc, moves: movesHead, sub2: sub2, legend: legend, ratio: ratio, mapWrap: mw, mapCanvas: mc }
     current = ui
 
     function pointer(cv, key) {
@@ -756,10 +772,11 @@
     renderControls()
     redraw()
     load(false)
+    loadMap(false)
     clearInterval(timer)
     timer = setInterval(function () {
       if (!current || !current.root.isConnected) { unmount(); return }
-      if (document.visibilityState === 'visible') load(false)
+      if (document.visibilityState === 'visible') { load(false); loadMap(false) }
     }, REFRESH_MS)
   }
 
@@ -780,6 +797,10 @@
     ui.ctr1.appendChild(seg(TFS.map(function (t) { return { key: t.key, label: t.label } }), state.tf, function (k) {
       state.tf = k; save(); renderControls(); load(true)
     }))
+    ui.ctr2.innerHTML = ''
+    ui.ctr2.appendChild(seg(MAP_TFS, state.mapTf, function (k) {
+      state.mapTf = k; save(); renderControls(); loadMap(true)
+    }))
   }
 
   function redraw() {
@@ -788,9 +809,9 @@
     var tf = tfObj()
     var exLabel = state.ex === 'all' ? 'alle Börsen' : EXCHANGES.filter(function (e) { return e.key === state.ex })[0].label
     ui.sub1.textContent = 'Geschätzte Liquidationsniveaus · ' + state.coin + ' · ' + exLabel + ' · ' + tf.long + ', ' + IV_LABEL[tf.iv]
-    var errs = []
-    EXCHANGES.forEach(function (e) { var d = state.data[e.key]; if (d && d.err) errs.push(e.label) })
-    ui.sub2.innerHTML = 'Offene Liquidationsniveaus im Bereich ±' + Math.round(tf.range * 100) + ' % · ' + state.coin + ' · ' + tf.long +
+    var errs = [], mtf = mapTfObj()
+    EXCHANGES.forEach(function (e) { var d = state.mapData[e.key]; if (d && d.err) errs.push(e.label) })
+    ui.sub2.innerHTML = 'Offene Liquidationsniveaus im Bereich ±' + Math.round(mtf.range * 100) + ' % · ' + state.coin + ' · Positionen der letzten ' + mtf.long +
       (errs.length ? ' · <span class="lrh-err">nicht verfügbar: ' + errs.join(', ') + '</span>' : '')
     ui.upd.textContent = state.loading ? 'LÄDT …' : state.updated ? 'STAND ' + pad2(state.updated.getHours()) + ':' + pad2(state.updated.getMinutes()) + ':' + pad2(state.updated.getSeconds()) : ''
     drawHeat(ui)
@@ -816,7 +837,7 @@
     var tf = tfObj(), coin = state.coin, seq = ++loadSeq
     var cols = Math.round(tf.ms / IV_MS[tf.iv])
     var count = Math.min(1000, cols * 2)
-    if (clearFirst) { state.data = {}; heatModel = null; mapModel = null }
+    if (clearFirst) { state.data = {}; heatModel = null }
     state.loading = true
     redraw()
     var jobs = EXCHANGES.map(function (e) {
@@ -833,7 +854,29 @@
       state.data = data
       state.loading = false
       state.updated = new Date()
-      computeHeat(); computeMap(); redraw()
+      computeHeat(); redraw()
+    })
+  }
+
+  var mapSeq = 0
+  function loadMap(clearFirst) {
+    var tf = mapTfObj(), coin = state.coin, seq = ++mapSeq
+    var cols = Math.round(tf.ms / IV_MS[tf.iv])
+    var count = Math.min(1000, cols * 2)
+    if (clearFirst) { state.mapData = {}; mapModel = null }
+    state.mapLoading = true
+    redraw()
+    Promise.all(EXCHANGES.map(function (e) {
+      return fetchCandles(e.key, coin, tf.iv, count).then(function (c) {
+        return { key: e.key, candles: c, levels: buildLevels(c, tf) }
+      }, function (err) { return { key: e.key, err: String(err && err.message || err) } })
+    })).then(function (res) {
+      if (seq !== mapSeq) return
+      var data = {}
+      res.forEach(function (r) { data[r.key] = r })
+      state.mapData = data
+      state.mapLoading = false
+      computeMap(); redraw()
     })
   }
 
