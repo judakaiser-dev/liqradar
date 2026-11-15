@@ -295,6 +295,7 @@
   }
 
   function mount(el) {
+    try { var kc = JSON.parse(localStorage.getItem('liqradar-kurse') || '{}'); if ((kc.cur === 'eur' || kc.cur === 'usd') && kc.cur !== st.cur) { st.cur = kc.cur; st.rows = null; st.global = null } } catch (e) {}
     if (window.__lrHeatmap) window.__lrHeatmap.ensureStyle()
     if (!document.getElementById('lrk-style')) {
       var s = document.createElement('style'); s.id = 'lrk-style'; s.textContent = CSS; document.head.appendChild(s)
@@ -304,7 +305,7 @@
     clearInterval(timer)
     timer = setInterval(function () {
       if (!root || !root.isConnected) { clearInterval(timer); root = null; return }
-      if (document.visibilityState === 'visible' && !(document.activeElement && document.activeElement.id === 'lrk-q')) load()
+      if (document.visibilityState === 'visible' && !(document.activeElement && document.activeElement.id === 'lrk-q') && (!window.__lrShouldRefresh || window.__lrShouldRefresh('kurse', 60e3))) load()
     }, 60e3)
   }
   function scan() {

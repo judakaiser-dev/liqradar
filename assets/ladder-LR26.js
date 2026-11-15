@@ -7,6 +7,7 @@
   var STEPS = [1, 2, 3, 4, 5]
   var st = { coin: 'BTC', data: null, loading: false, sel: null, at: null }
   try { var sv = JSON.parse(localStorage.getItem('liqradar-ladder') || '{}'); if (sv.coin) st.coin = sv.coin } catch (e) {}
+  window.__lrLadder = st
   function save() { try { localStorage.setItem('liqradar-ladder', JSON.stringify({ coin: st.coin })) } catch (e) {} }
   function api() { return window.__lrHeatmap }
   var nf1 = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
@@ -151,7 +152,7 @@
     clearInterval(timer)
     timer = setInterval(function () {
       if (!root || !root.isConnected) { clearInterval(timer); root = null; return }
-      if (document.visibilityState === 'visible') load()
+      if (document.visibilityState === 'visible' && (!window.__lrShouldRefresh || window.__lrShouldRefresh('ladder', 120e3))) load()
     }, 120e3)
   }
   function scan() {

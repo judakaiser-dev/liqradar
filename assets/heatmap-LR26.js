@@ -776,7 +776,7 @@
     clearInterval(timer)
     timer = setInterval(function () {
       if (!current || !current.root.isConnected) { unmount(); return }
-      if (document.visibilityState === 'visible') { load(false); loadMap(false) }
+      if (document.visibilityState === 'visible' && (!window.__lrShouldRefresh || window.__lrShouldRefresh('heat', REFRESH_MS))) { load(false); loadMap(false) }
     }, REFRESH_MS)
   }
 

@@ -469,7 +469,7 @@
     clearInterval(timer)
     timer = setInterval(function () {
       if (!root || !root.isConnected || root.id !== 'lr-daily-root') { clearInterval(timer); root = null; return }
-      if (document.visibilityState === 'visible') load(false)
+      if (document.visibilityState === 'visible' && (!window.__lrShouldRefresh || window.__lrShouldRefresh('daily', 120e3))) load(false)
     }, 120e3)
   }
   function scan() {
